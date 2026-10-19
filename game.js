@@ -92,6 +92,25 @@ function updateBall(dt) {
   }
 
   bounceOnPaddle();
+  hitBlock();
+}
+
+// Como máximo un bloque por frame
+function hitBlock() {
+  const ball = state.ball;
+  for (const b of state.blocks) {
+    if (!b.alive) continue;
+    if (!overlaps(ball.x, ball.y, BALL_SIZE, BALL_SIZE, b.x, b.y, BLOCK_W, BLOCK_H)) continue;
+
+    b.alive = false;
+    state.score += POINTS_PER_BLOCK;
+
+    const overlapX = Math.min(ball.x + BALL_SIZE, b.x + BLOCK_W) - Math.max(ball.x, b.x);
+    const overlapY = Math.min(ball.y + BALL_SIZE, b.y + BLOCK_H) - Math.max(ball.y, b.y);
+    if (overlapX < overlapY) ball.vx = -ball.vx;
+    else ball.vy = -ball.vy;
+    return;
+  }
 }
 
 function overlaps(ax, ay, aw, ah, bx, by, bw, bh) {
