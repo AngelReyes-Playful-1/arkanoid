@@ -73,9 +73,29 @@ function onAction() {
   if (state.phase === 'serve') launchBall();
 }
 
+function updateBall(dt) {
+  const ball = state.ball;
+  ball.x += ball.vx * dt;
+  ball.y += ball.vy * dt;
+
+  // Paredes laterales y techo: recolocar dentro y forzar el signo de la velocidad
+  if (ball.x < 0) {
+    ball.x = 0;
+    ball.vx = Math.abs(ball.vx);
+  } else if (ball.x + BALL_SIZE > CANVAS_W) {
+    ball.x = CANVAS_W - BALL_SIZE;
+    ball.vx = -Math.abs(ball.vx);
+  }
+  if (ball.y < 0) {
+    ball.y = 0;
+    ball.vy = Math.abs(ball.vy);
+  }
+}
+
 function update(dt) {
   updatePaddle(dt);
   if (state.phase === 'serve') stickBallToPaddle();
+  else if (state.phase === 'playing') updateBall(dt);
 }
 
 function render() {
