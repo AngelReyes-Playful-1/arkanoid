@@ -90,6 +90,27 @@ function updateBall(dt) {
     ball.y = 0;
     ball.vy = Math.abs(ball.vy);
   }
+
+  bounceOnPaddle();
+}
+
+function overlaps(ax, ay, aw, ah, bx, by, bw, bh) {
+  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+}
+
+function bounceOnPaddle() {
+  const { ball, paddle } = state;
+  // Solo si baja, para no rebotar dos veces seguidas
+  if (ball.vy <= 0) return;
+  if (!overlaps(ball.x, ball.y, BALL_SIZE, BALL_SIZE, paddle.x, PADDLE_Y, PADDLE_W, PADDLE_H)) return;
+
+  const ballCenter = ball.x + BALL_SIZE / 2;
+  const paddleCenter = paddle.x + PADDLE_W / 2;
+  const rel = clamp((ballCenter - paddleCenter) / (PADDLE_W / 2), -1, 1);
+  const angle = rel * MAX_BOUNCE_ANGLE;
+  ball.vx = BALL_SPEED * Math.sin(angle);
+  ball.vy = -BALL_SPEED * Math.cos(angle);
+  ball.y = PADDLE_Y - BALL_SIZE;
 }
 
 function update(dt) {
