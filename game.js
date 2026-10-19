@@ -11,12 +11,13 @@ const MAX_DT = 1 / 30;                 // s
 
 // Estado del juego
 const state = {
-  phase: 'serve',      // 'serve' | 'playing' | 'gameover' | 'win'
+  phase: 'serve',      // 'serve' | 'playing' | 'clearing' | 'gameover' | 'win'
   score: 0,
   lives: START_LIVES,
   paddle: { x: 340 },  // esquina izquierda; y fija = PADDLE_Y
   ball: { x: 0, y: 0, vx: 0, vy: 0 }, // esquina superior izquierda, px/s
   blocks: [],          // { x, y, color, alive }
+  explosions: [],      // { x, y, color, elapsed } elapsed en ms
   input: { left: false, right: false, mouseX: null },
 };
 
@@ -76,6 +77,7 @@ function resetGame() {
   state.ball.vx = 0;
   state.ball.vy = 0;
   state.blocks = buildBlocks();
+  state.explosions = [];
   stickBallToPaddle();
 }
 
