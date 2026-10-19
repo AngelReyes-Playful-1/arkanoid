@@ -40,7 +40,24 @@ function buildBlocks() {
   return blocks;
 }
 
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
+function updatePaddle(dt) {
+  const { input, paddle } = state;
+  // El ratón coloca la pala una vez por movimiento; luego el teclado puede seguir moviéndola
+  if (input.mouseX !== null) {
+    paddle.x = input.mouseX - PADDLE_W / 2;
+    input.mouseX = null;
+  }
+  const dir = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+  paddle.x += dir * PADDLE_SPEED * dt;
+  paddle.x = clamp(paddle.x, 0, CANVAS_W - PADDLE_W);
+}
+
 function update(dt) {
+  updatePaddle(dt);
 }
 
 function render() {
@@ -49,6 +66,8 @@ function render() {
   for (const b of state.blocks) {
     if (b.alive) drawSprite(ctx, 'block_' + b.color, b.x, b.y, BLOCK_W, BLOCK_H);
   }
+
+  drawSprite(ctx, 'paddle', state.paddle.x, PADDLE_Y, PADDLE_W, PADDLE_H);
 }
 
 function frame(now) {
@@ -58,6 +77,24 @@ function frame(now) {
   render();
   requestAnimationFrame(frame);
 }
+
+// Input
+const KEY_DIRS = { ArrowLeft: 'left', a: 'left', A: 'left', ArrowRight: 'right', d: 'right', D: 'right' };
+
+function setKey(e, pressed) {
+  const dir = KEY_DIRS[e.key];
+  if (!dir) return;
+  state.input[dir] = pressed;
+  e.preventDefault();
+}
+
+window.addEventListener('keydown', (e) => setKey(e, true));
+window.addEventListener('keyup', (e) => setKey(e, false));
+
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  state.input.mouseX = (e.clientX - rect.left) * (CANVAS_W / rect.width);
+});
 
 state.blocks = buildBlocks();
 
