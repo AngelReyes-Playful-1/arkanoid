@@ -68,9 +68,21 @@ function launchBall() {
   state.phase = 'playing';
 }
 
+function resetGame() {
+  state.phase = 'serve';
+  state.score = 0;
+  state.lives = START_LIVES;
+  state.paddle.x = (CANVAS_W - PADDLE_W) / 2;
+  state.ball.vx = 0;
+  state.ball.vy = 0;
+  state.blocks = buildBlocks();
+  stickBallToPaddle();
+}
+
 // Espacio o clic
 function onAction() {
   if (state.phase === 'serve') launchBall();
+  else if (state.phase === 'gameover' || state.phase === 'win') resetGame();
 }
 
 function updateBall(dt) {
@@ -93,6 +105,23 @@ function updateBall(dt) {
 
   bounceOnPaddle();
   hitBlock();
+
+  if (!state.blocks.some((b) => b.alive)) {
+    state.phase = 'win';
+    return;
+  }
+
+  if (ball.y > CANVAS_H) loseLife();
+}
+
+function loseLife() {
+  state.lives--;
+  if (state.lives > 0) {
+    state.phase = 'serve';
+    stickBallToPaddle();
+  } else {
+    state.phase = 'gameover';
+  }
 }
 
 // Como máximo un bloque por frame
@@ -147,6 +176,36 @@ function render() {
 
   drawSprite(ctx, 'paddle', state.paddle.x, PADDLE_Y, PADDLE_W, PADDLE_H);
   drawSprite(ctx, 'ball', state.ball.x, state.ball.y, BALL_SIZE, BALL_SIZE);
+
+  renderHud();
+  if (state.phase === 'gameover') renderOverlay('GAME OVER');
+  else if (state.phase === 'win') renderOverlay('YOU WIN');
+}
+
+// Franja superior (y < GRID_TOP)
+function renderHud() {
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 20px monospace';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  ctx.fillText('SCORE ' + state.score, 20, GRID_TOP / 2);
+  ctx.textAlign = 'right';
+  ctx.fillText('LIVES ' + state.lives, CANVAS_W - 20, GRID_TOP / 2);
+}
+
+function renderOverlay(title) {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 56px monospace';
+  ctx.fillText(title, CANVAS_W / 2, CANVAS_H / 2 - 50);
+  ctx.font = 'bold 24px monospace';
+  ctx.fillText('SCORE ' + state.score, CANVAS_W / 2, CANVAS_H / 2 + 10);
+  ctx.font = '18px monospace';
+  ctx.fillText('Espacio / clic para reiniciar', CANVAS_W / 2, CANVAS_H / 2 + 60);
 }
 
 function frame(now) {
@@ -184,7 +243,6 @@ canvas.addEventListener('mousemove', (e) => {
   state.input.mouseX = (e.clientX - rect.left) * (CANVAS_W / rect.width);
 });
 
-state.blocks = buildBlocks();
-stickBallToPaddle();
+resetGame();
 
 loadSpritesheet(() => requestAnimationFrame(frame));
