@@ -56,8 +56,26 @@ function updatePaddle(dt) {
   paddle.x = clamp(paddle.x, 0, CANVAS_W - PADDLE_W);
 }
 
+function stickBallToPaddle() {
+  state.ball.x = state.paddle.x + PADDLE_W / 2 - BALL_SIZE / 2;
+  state.ball.y = PADDLE_Y - BALL_SIZE;
+}
+
+function launchBall() {
+  const angle = Math.PI / 6; // 30° de la vertical, hacia la derecha
+  state.ball.vx = BALL_SPEED * Math.sin(angle);
+  state.ball.vy = -BALL_SPEED * Math.cos(angle);
+  state.phase = 'playing';
+}
+
+// Espacio o clic
+function onAction() {
+  if (state.phase === 'serve') launchBall();
+}
+
 function update(dt) {
   updatePaddle(dt);
+  if (state.phase === 'serve') stickBallToPaddle();
 }
 
 function render() {
@@ -68,6 +86,7 @@ function render() {
   }
 
   drawSprite(ctx, 'paddle', state.paddle.x, PADDLE_Y, PADDLE_W, PADDLE_H);
+  drawSprite(ctx, 'ball', state.ball.x, state.ball.y, BALL_SIZE, BALL_SIZE);
 }
 
 function frame(now) {
@@ -88,8 +107,17 @@ function setKey(e, pressed) {
   e.preventDefault();
 }
 
-window.addEventListener('keydown', (e) => setKey(e, true));
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (!e.repeat) onAction();
+    return;
+  }
+  setKey(e, true);
+});
 window.addEventListener('keyup', (e) => setKey(e, false));
+
+canvas.addEventListener('click', onAction);
 
 canvas.addEventListener('mousemove', (e) => {
   const rect = canvas.getBoundingClientRect();
@@ -97,5 +125,6 @@ canvas.addEventListener('mousemove', (e) => {
 });
 
 state.blocks = buildBlocks();
+stickBallToPaddle();
 
 loadSpritesheet(() => requestAnimationFrame(frame));
