@@ -1,6 +1,6 @@
 # SPEC 02 — Animación de explosión de bloques
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01
 > **Fecha:** 2026-10-19
 > **Objetivo:** Al romper un bloque se reproduce en su posición la animación de explosión de 4 frames de su color durante 150ms.
