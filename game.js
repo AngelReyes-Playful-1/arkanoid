@@ -134,6 +134,7 @@ function hitBlock() {
     if (!overlaps(ball.x, ball.y, BALL_SIZE, BALL_SIZE, b.x, b.y, BLOCK_W, BLOCK_H)) continue;
 
     b.alive = false;
+    state.explosions.push({ x: b.x, y: b.y, color: b.color, elapsed: 0 });
     state.score += POINTS_PER_BLOCK;
 
     const overlapX = Math.min(ball.x + BALL_SIZE, b.x + BLOCK_W) - Math.max(ball.x, b.x);
@@ -163,10 +164,23 @@ function bounceOnPaddle() {
   ball.y = PADDLE_Y - BALL_SIZE;
 }
 
+function updateExplosions(dt) {
+  for (const e of state.explosions) e.elapsed += dt * 1000;
+  state.explosions = state.explosions.filter((e) => e.elapsed < EXPLOSION_DURATION);
+}
+
 function update(dt) {
   updatePaddle(dt);
   if (state.phase === 'serve') stickBallToPaddle();
   else if (state.phase === 'playing') updateBall(dt);
+  updateExplosions(dt);
+}
+
+function renderExplosions() {
+  for (const e of state.explosions) {
+    const i = Math.min(3, Math.floor(e.elapsed / (EXPLOSION_DURATION / 4)));
+    drawFrame(ctx, EXPLOSION_FRAMES[e.color][i], e.x, e.y, BLOCK_W, BLOCK_H);
+  }
 }
 
 function render() {
@@ -175,6 +189,8 @@ function render() {
   for (const b of state.blocks) {
     if (b.alive) drawSprite(ctx, 'block_' + b.color, b.x, b.y, BLOCK_W, BLOCK_H);
   }
+
+  renderExplosions();
 
   drawSprite(ctx, 'paddle', state.paddle.x, PADDLE_Y, PADDLE_W, PADDLE_H);
   drawSprite(ctx, 'ball', state.ball.x, state.ball.y, BALL_SIZE, BALL_SIZE);
