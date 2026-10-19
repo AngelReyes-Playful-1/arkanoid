@@ -25,11 +25,30 @@ const ctx = canvas.getContext('2d');
 
 let lastTime = null;
 
+function buildBlocks() {
+  const blocks = [];
+  for (let row = 0; row < GRID_ROWS; row++) {
+    for (let col = 0; col < GRID_COLS; col++) {
+      blocks.push({
+        x: col * BLOCK_W,
+        y: GRID_TOP + row * BLOCK_H,
+        color: ROW_COLORS[row],
+        alive: true,
+      });
+    }
+  }
+  return blocks;
+}
+
 function update(dt) {
 }
 
 function render() {
   ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+
+  for (const b of state.blocks) {
+    if (b.alive) drawSprite(ctx, 'block_' + b.color, b.x, b.y, BLOCK_W, BLOCK_H);
+  }
 }
 
 function frame(now) {
@@ -39,5 +58,7 @@ function frame(now) {
   render();
   requestAnimationFrame(frame);
 }
+
+state.blocks = buildBlocks();
 
 loadSpritesheet(() => requestAnimationFrame(frame));
