@@ -109,7 +109,7 @@ function updateBall(dt) {
   hitBlock();
 
   if (!state.blocks.some((b) => b.alive)) {
-    state.phase = 'win';
+    state.phase = 'clearing';
     return;
   }
 
@@ -170,10 +170,11 @@ function updateExplosions(dt) {
 }
 
 function update(dt) {
-  updatePaddle(dt);
+  if (state.phase !== 'clearing') updatePaddle(dt);
   if (state.phase === 'serve') stickBallToPaddle();
   else if (state.phase === 'playing') updateBall(dt);
   updateExplosions(dt);
+  if (state.phase === 'clearing' && state.explosions.length === 0) state.phase = 'win';
 }
 
 function renderExplosions() {
